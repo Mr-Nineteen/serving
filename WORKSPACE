@@ -88,13 +88,15 @@ http_archive(
 )
 
 load("@tf_recommenders_addons//build_deps/tf_dependency:tf_configure.bzl", "tf_configure")
+load("@tf_recommenders_addons//build_deps/toolchains/gpu:cuda_configure.bzl", "cuda_configure")
 
 tf_configure(
     name = "local_config_tf",
 )
 
-# load("@tf_recommenders_addons//build_deps/toolchains/gpu:cuda_configure.bzl", "cuda_configure")
-# cuda_configure(name = "local_config_cuda")
+cuda_configure(
+    name = "local_config_cuda",
+)
 
 load("@tf_recommenders_addons//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
 
