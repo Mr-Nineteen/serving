@@ -88,13 +88,26 @@ http_archive(
 )
 
 load("@tf_recommenders_addons//build_deps/tf_dependency:tf_configure.bzl", "tf_configure")
-load("@tf_recommenders_addons//build_deps/toolchains/gpu:cuda_configure.bzl", "cuda_configure")
 
 tf_configure(
     name = "local_config_tf",
 )
 
-cuda_configure(name = "local_config_cuda")
+# load("@tf_recommenders_addons//build_deps/toolchains/gpu:cuda_configure.bzl", "cuda_configure")
+# cuda_configure(name = "local_config_cuda")
+
+load("@tf_recommenders_addons//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
+
+custom_op_library(
+    name = "_cuckoo_hashtable_ops.so",
+    srcs = [
+        "kernels/cuckoo_hashtable_op.cc",
+        "kernels/cuckoo_hashtable_op.h",
+        "ops/cuckoo_hashtable_ops.cc",
+    ],
+    deps = ["@tf_recommenders_addons//tensorflow_recommenders_addons/dynamic_embedding/core/lib/cuckoo:cuckoohash"],
+)
+
 # END recommenders-addons
 
 # Please add all new TensorFlow Serving dependencies in workspace.bzl.
