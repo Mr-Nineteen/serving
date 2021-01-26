@@ -98,17 +98,17 @@ cuda_configure(
     name = "local_config_cuda",
 )
 
-load("@tf_recommenders_addons//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
+# load("@tf_recommenders_addons//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
 
-custom_op_library(
-    name = "_cuckoo_hashtable_ops.so",
-    srcs = [
-        "kernels/cuckoo_hashtable_op.cc",
-        "kernels/cuckoo_hashtable_op.h",
-        "ops/cuckoo_hashtable_ops.cc",
-    ],
-    deps = ["@tf_recommenders_addons//tensorflow_recommenders_addons/dynamic_embedding/core/lib/cuckoo:cuckoohash"],
-)
+# custom_op_library(
+#     name = "_cuckoo_hashtable_ops.so",
+#     srcs = [
+#         "kernels/cuckoo_hashtable_op.cc",
+#         "kernels/cuckoo_hashtable_op.h",
+#         "ops/cuckoo_hashtable_ops.cc",
+#     ],
+#     deps = ["@tf_recommenders_addons//tensorflow_recommenders_addons/dynamic_embedding/core/lib/cuckoo:cuckoohash"],
+# )
 
 # END recommenders-addons
 
