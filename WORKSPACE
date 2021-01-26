@@ -19,13 +19,6 @@ local_repository(
     path = "/install/tensorflow",
 )
 
-load("//tensorflow_serving:recommenders_addons.bzl", "recommenders_addons_tensorflow_http_archive")
-
-local_repository(
-    name = "tf_recommenders_addons",
-    path = "/install/recommenders-addons",
-)
-
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
@@ -76,6 +69,13 @@ http_archive(
 # END: Upstream TensorFlow dependencies
 
 # START recommenders-addons
+load("//tensorflow_serving:recommenders_addons.bzl", "recommenders_addons_tensorflow_http_archive")
+
+local_repository(
+    name = "tf_recommenders_addons",
+    path = "/install/recommenders-addons",
+)
+
 http_archive(
     name = "cub_archive",
     build_file = "//build_deps/toolchains/gpu:cub.BUILD",
