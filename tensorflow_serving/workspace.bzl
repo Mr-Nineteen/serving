@@ -4,6 +4,7 @@
 load("@org_tensorflow//third_party:repo.bzl", "tf_http_archive")
 load("@org_tensorflow//tensorflow:workspace.bzl", "tf_workspace")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@tf_recommenders_addons//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
 
 def tf_serving_workspace():
     """All TensorFlow Serving external dependencies."""
@@ -108,3 +109,14 @@ def tf_serving_workspace():
             "https://github.com/google/glog/archive/028d37889a1e80e8a07da1b8945ac706259e5fd8.tar.gz",
         ],
     )
+
+    custom_op_library(
+        name = "_cuckoo_hashtable_ops.so",
+        srcs = [
+            "kernels/cuckoo_hashtable_op.cc",
+            "kernels/cuckoo_hashtable_op.h",
+            "ops/cuckoo_hashtable_ops.cc",
+        ],
+        deps = ["@tf_recommenders_addons//tensorflow_recommenders_addons/dynamic_embedding/core/lib/cuckoo:cuckoohash"],
+    )
+
