@@ -94,9 +94,9 @@ tf_configure(
     name = "local_config_tf",
 )
 
-cuda_configure(
-    name = "local_config_cuda",
-)
+# cuda_configure(
+#     name = "local_config_cuda",
+# )
 
 # load("@tf_recommenders_addons//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
 
