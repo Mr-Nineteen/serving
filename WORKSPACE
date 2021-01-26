@@ -9,10 +9,14 @@ workspace(name = "tf_serving")
 #    reliable downloads.
 load("//tensorflow_serving:repo.bzl", "tensorflow_http_archive")
 
-tensorflow_http_archive(
+# tensorflow_http_archive(
+#     name = "org_tensorflow",
+#     sha256 = "9c94bfec7214853750c7cacebd079348046f246ec0174d01cd36eda375117628",
+#     git_commit = "582c8d236cb079023657287c318ff26adb239002",
+# )
+local_repository(
     name = "org_tensorflow",
-    sha256 = "9c94bfec7214853750c7cacebd079348046f246ec0174d01cd36eda375117628",
-    git_commit = "582c8d236cb079023657287c318ff26adb239002",
+    path = "/install/tensorflow",
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
