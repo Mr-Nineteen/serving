@@ -19,6 +19,13 @@ local_repository(
     path = "/install/tensorflow",
 )
 
+load("//tensorflow_serving:recommenders_addons.bzl", "recommenders_addons_tensorflow_http_archive")
+
+local_repository(
+    name = "tf_recommenders_addons",
+    path = "/install/recommenders-addons",
+)
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
@@ -67,6 +74,28 @@ http_archive(
 )  # https://github.com/bazelbuild/bazel-skylib/releases
 
 # END: Upstream TensorFlow dependencies
+
+# START recommenders-addons
+http_archive(
+    name = "cub_archive",
+    build_file = "//build_deps/toolchains/gpu:cub.BUILD",
+    sha256 = "6bfa06ab52a650ae7ee6963143a0bbc667d6504822cbd9670369b598f18c58c3",
+    strip_prefix = "cub-1.8.0",
+    urls = [
+        "https://storage.googleapis.com/mirror.tensorflow.org/github.com/NVlabs/cub/archive/1.8.0.zip",
+        "https://github.com/NVlabs/cub/archive/1.8.0.zip",
+    ],
+)
+
+load("@tf_recommenders_addons//build_deps/tf_dependency:tf_configure.bzl", "tf_configure")
+load("@tf_recommenders_addons//build_deps/toolchains/gpu:cuda_configure.bzl", "cuda_configure")
+
+tf_configure(
+    name = "local_config_tf",
+)
+
+cuda_configure(name = "local_config_cuda")
+# END recommenders-addons
 
 # Please add all new TensorFlow Serving dependencies in workspace.bzl.
 load("//tensorflow_serving:workspace.bzl", "tf_serving_workspace")
