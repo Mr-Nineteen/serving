@@ -87,17 +87,6 @@ http_archive(
     ],
 )
 
-load("@tf_recommenders_addons//build_deps/tf_dependency:tf_configure.bzl", "tf_configure")
-load("@tf_recommenders_addons//build_deps/toolchains/gpu:cuda_configure.bzl", "cuda_configure")
-
-tf_configure(
-    name = "local_config_tf",
-)
-
-cuda_configure(
-    name = "local_config_cuda",
-)
-
 # END recommenders-addons
 
 # Please add all new TensorFlow Serving dependencies in workspace.bzl.
