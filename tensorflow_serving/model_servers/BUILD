@@ -319,6 +319,7 @@ SUPPORTED_TENSORFLOW_OPS = if_v2([]) + if_not_v2([
     "@org_tensorflow//tensorflow/contrib:contrib_ops_op_lib",
 ]) + [
     "@org_tensorflow_text//tensorflow_text:ops_lib",
+    "//tensorflow_recommenders_addons/dynamic_embedding/core:_cuckoo_hashtable_ops.so",
 ]
 
 cc_library(
@@ -383,6 +384,7 @@ cc_library(
         "@org_tensorflow//tensorflow/core/platform/cloud:gcs_file_system",
         "@org_tensorflow//tensorflow/core/platform/hadoop:hadoop_file_system",
         "@org_tensorflow//tensorflow/core/platform/s3:s3_file_system",
+        # "//tensorflow_recommenders_addons/dynamic_embedding/core:_cuckoo_hashtable_ops.so",
     ],
 )
 
@@ -477,7 +479,7 @@ pkg_deb(
     homepage = "https://github.com/tensorflow/serving",
     maintainer = "TensorFlow Serving team",
     package = "tensorflow-model-server",
-    version = "2.4.0",  # Set when releasing a new version of TensorFlow Serving (e.g. 1.0.0).
+    version = "2.4.1",  # Set when releasing a new version of TensorFlow Serving (e.g. 1.0.0).
 )
 
 # Build with '-c opt'
@@ -488,5 +490,5 @@ pkg_deb(
     homepage = "https://github.com/tensorflow/serving",
     maintainer = "TensorFlow Serving team",
     package = "tensorflow-model-server-universal",
-    version = "2.4.0",  # Set when releasing a new version of TensorFlow Serving (e.g. 1.0.0).
+    version = "2.4.1",  # Set when releasing a new version of TensorFlow Serving (e.g. 1.0.0).
 )

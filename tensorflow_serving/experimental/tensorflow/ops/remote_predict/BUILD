@@ -2,6 +2,7 @@
 # Remote Predict Op Prototype
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_custom_op_library", "tf_gen_op_libs", "tf_gen_op_wrapper_cc", "tf_gen_op_wrapper_py", "tf_kernel_library")
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_custom_op_py_library")
+load("//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
 
 licenses(["notice"])
 
@@ -26,6 +27,7 @@ cc_library(
         "@org_tensorflow//tensorflow/core:framework_headers_lib",
         "@org_tensorflow//tensorflow/core:protos_all_cc",
         "@org_tensorflow//tensorflow/core/kernels:ops_util_hdrs",
+        # "//tensorflow_recommenders_addons/dynamic_embedding/core:_cuckoo_hashtable_ops.so",
     ],
     alwayslink = 1,
 )

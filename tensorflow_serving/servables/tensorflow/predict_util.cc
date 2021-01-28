@@ -211,10 +211,21 @@ Status RunPredict(
   TF_RETURN_IF_ERROR(session->Run(run_options, input_tensors,
                                   output_tensor_names, {}, &outputs,
                                   &run_metadata, thread_pool_options));
+  // Status status = session->Run(run_options, input_tensors,
+  //                              output_tensor_names, {}, &outputs,
+  //                              &run_metadata, thread_pool_options);
   const uint64 end_microseconds = EnvTime::NowMicros();
   RecordRuntimeLatency(request.model_spec().name(), /*api=*/"Predict",
                        /*runtime=*/"TF1",
                        end_microseconds - start_microseconds);
+
+  // UpdateModelLatencyTime(request.model_spec().name(), EnvTime::NowMicros() - start_microseconds);
+  // if (status != Status::OK()) {
+  //       RecordModelRequestFailCount(request.model_spec().name());
+  // }
+
+  // RecordModelRequestCount(request.model_spec().name());
+  // TF_RETURN_IF_ERROR(status);
 
   return PostProcessPredictionResult(output_tensor_aliases, outputs, option,
                                      response);
