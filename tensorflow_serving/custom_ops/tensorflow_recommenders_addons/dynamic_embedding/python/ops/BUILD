@@ -12,7 +12,7 @@ py_library(
     name = "dynamic_embedding",
     srcs = glob(["*.py"]),
     data = [
-        "//tensorflow_recommenders_addons/dynamic_embedding/core:_cuckoo_hashtable_ops.so",
+        "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons/dynamic_embedding/core:_cuckoo_hashtable_ops.so",
     ],
     srcs_version = "PY2AND3",
 )
