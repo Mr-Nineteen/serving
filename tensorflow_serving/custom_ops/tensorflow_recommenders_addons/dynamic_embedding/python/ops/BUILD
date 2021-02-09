@@ -2,7 +2,7 @@
 
 package(
     default_visibility = [
-        "//tensorflow_recommenders_addons:__subpackages__",
+        "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons:__subpackages__",
     ],
 )
 

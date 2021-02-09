@@ -3,7 +3,7 @@
 
 package(
     default_visibility = [
-        "//tensorflow_recommenders_addons:__subpackages__",
+        "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons:__subpackages__",
     ],
 )
 
@@ -16,7 +16,7 @@ py_test(
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
-        "//tensorflow_recommenders_addons",
+        "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons",
     ],
 )
 
@@ -26,7 +26,7 @@ py_test(
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
-        "//tensorflow_recommenders_addons",
+        "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons",
     ],
 )
 
@@ -36,7 +36,7 @@ py_test(
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
-        "//tensorflow_recommenders_addons",
+        "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons",
     ],
 )
 
@@ -46,6 +46,6 @@ py_test(
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
-        "//tensorflow_recommenders_addons",
+        "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons",
     ],
 )
