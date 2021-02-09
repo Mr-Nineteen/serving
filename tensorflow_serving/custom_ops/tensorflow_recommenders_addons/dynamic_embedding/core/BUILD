@@ -11,5 +11,8 @@ cc_binary(
         "kernels/cuckoo_hashtable_op.h",
         "ops/cuckoo_hashtable_ops.cc",
     ],
-    deps = ["//tensorflow_serving/custom_ops/tensorflow_recommenders_addons/dynamic_embedding/core/lib/cuckoo:cuckoohash"],
+    deps = [
+        "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons/dynamic_embedding/core/lib/cuckoo:cuckoohash",
+        "@org_tensorflow//tensorflow/core:framework",
+    ],
 )
