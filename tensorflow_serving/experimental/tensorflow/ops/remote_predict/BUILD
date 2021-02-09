@@ -2,7 +2,7 @@
 # Remote Predict Op Prototype
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_custom_op_library", "tf_gen_op_libs", "tf_gen_op_wrapper_cc", "tf_gen_op_wrapper_py", "tf_kernel_library")
 load("@org_tensorflow//tensorflow:tensorflow.bzl", "tf_custom_op_py_library")
-load("//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
+# load("//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
 
 licenses(["notice"])
 
