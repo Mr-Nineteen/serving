@@ -27,7 +27,7 @@ limitations under the License.
 #include "tensorflow/core/kernels/lookup_table_op.h"
 #include "tensorflow/core/lib/gtl/inlined_vector.h"
 #include "tensorflow/core/util/work_sharder.h"
-#include "tensorflow_recommenders_addons/dynamic_embedding/core/lib/cuckoo/cuckoohash_map.hh"
+#include "tensorflow_serving/custom_ops/tensorflow_recommenders_addons/dynamic_embedding/core/lib/cuckoo/cuckoohash_map.hh"
 
 namespace tensorflow {
 namespace cuckoohash {
