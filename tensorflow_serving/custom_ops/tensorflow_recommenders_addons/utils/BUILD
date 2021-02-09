@@ -6,7 +6,7 @@ py_library(
     name = "utils",
     srcs = glob(["*.py"]),
     data = [
-        "//tensorflow_recommenders_addons:conftest.py",
+        "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons:conftest.py",
     ],
 )
 
