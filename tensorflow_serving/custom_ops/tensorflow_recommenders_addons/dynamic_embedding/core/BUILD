@@ -4,7 +4,7 @@ package(default_visibility = ["//visibility:public"])
 
 # load("//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
 
-custom_op_library(
+cc_binary(
     name = "_cuckoo_hashtable_ops.so",
     srcs = [
         "kernels/cuckoo_hashtable_op.cc",
