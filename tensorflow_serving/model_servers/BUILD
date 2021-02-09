@@ -319,7 +319,7 @@ SUPPORTED_TENSORFLOW_OPS = if_v2([]) + if_not_v2([
     "@org_tensorflow//tensorflow/contrib:contrib_ops_op_lib",
 ]) + [
     "@org_tensorflow_text//tensorflow_text:ops_lib",
-    "//tensorflow_recommenders_addons/dynamic_embedding/core:_cuckoo_hashtable_ops.so",
+    "//tensorflow_serving/custom_ops/tensorflow_recommenders_addons/dynamic_embedding/core:_cuckoo_hashtable_ops.so",
 ]
 
 cc_library(
