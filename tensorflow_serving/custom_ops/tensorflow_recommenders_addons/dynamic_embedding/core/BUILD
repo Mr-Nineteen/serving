@@ -2,7 +2,7 @@ licenses(["notice"])  # Apache 2.0
 
 package(default_visibility = ["//visibility:public"])
 
-load("//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
+# load("//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
 
 custom_op_library(
     name = "_cuckoo_hashtable_ops.so",
