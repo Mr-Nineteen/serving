@@ -10,7 +10,7 @@ def custom_op_library(
         copts = [],
         **kwargs):
     deps = deps + [
-        "@local_config_tf//:libtensorflow_framework",
+        # "@local_config_tf//:libtensorflow_framework",
         "@local_config_tf//:tf_header_lib",
     ]
 
