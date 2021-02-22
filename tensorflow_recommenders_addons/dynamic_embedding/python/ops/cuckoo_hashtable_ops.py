@@ -71,7 +71,8 @@ class CuckooHashTable(LookupInterface):
           checkpoint: if True, the contents of the table are saved to and restored
             from checkpoints. If `shared_name` is empty for a checkpointed table, it
             is shared using the table node name.
-          init_size: init_size parameter for cuckoohash_map.
+          init_size: initial size for the Variable and initial size of each hash 
+            tables will be int(init_size / N), N is the number of the devices.
 
         Returns:
           A `CuckooHashTable` object.

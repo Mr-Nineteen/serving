@@ -155,6 +155,8 @@ class Variable(trackable.TrackableResource):
             saved to and restored from checkpoints.
             If `shared_name` is empty for a checkpointed table,
             it is shared using the table node name.
+          init_size: initial size for the Variable and initial size of each hash 
+            tables will be int(init_size / N), N is the number of the devices.
 
         Returns:
           A `Variable` object.
@@ -189,7 +191,7 @@ class Variable(trackable.TrackableResource):
     self._tables = []
     self.size_ops = []
     self.shard_num = len(self.devices)
-    self.init_size = init_size / self.shard_num
+    self.init_size = int(init_size / self.shard_num)
 
     key_dtype_list = [dtypes.int32, dtypes.int64]
     value_dtype_list = [

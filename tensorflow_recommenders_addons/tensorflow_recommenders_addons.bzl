@@ -10,7 +10,7 @@ def custom_op_library(
         copts = [],
         **kwargs):
     deps = deps + [
-        # "@local_config_tf//:libtensorflow_framework",
+        "@local_config_tf//:libtensorflow_framework",
         "@local_config_tf//:tf_header_lib",
     ]
 
@@ -54,11 +54,11 @@ def custom_op_library(
         "//conditions:default": ["-pthread", "-std=c++11", D_GLIBCXX_USE_CXX11_ABI],
     })
 
-    native.cc_library(
+    native.cc_binary(
         name = name,
         srcs = srcs,
         copts = copts,
-        alwayslink = 1,
+        linkshared = 1,
         features = select({
             "//tensorflow_recommenders_addons:windows": ["windows_export_all_symbols"],
             "//conditions:default": [],
