@@ -72,8 +72,8 @@ auto* model_latency_histogram = monitoring::Sampler<1>::New(
                   "The total time spent on executing graphs in microseconds.", "model"},
             // It would be nice to be able to set the parameters flexibly.
                    monitoring::Buckets::Explicit({
-                                                           	1000, 2000, 3000, 4000, 5000, 7000, 9000, 11000, 13000, 15000,
-                                                           	17000, 19000, 21000, 24000, 27000, 30000, 33000, 35000, 38000}));
+                                                           	5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000,
+                                                           	55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000}));
 
 // All processing metrics
 auto* all_request_count_total = monitoring::Counter<0>::New(
@@ -93,8 +93,8 @@ auto* all_latency_histogram = monitoring::Sampler<0>::New(
                    "The total time spent on serving in microseconds."},
             // It would be nice to be able to set the parameters flexibly.
                     monitoring::Buckets::Explicit({
-                                                           	1000, 2000, 3000, 4000, 5000, 7000, 9000, 11000, 13000, 15000,
-                                                           	17000, 19000, 21000, 24000, 27000, 30000, 33000, 35000, 38000}));
+                                                           	5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000,
+                                                           	55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000}));
 
 auto* runtime_latency = monitoring::Sampler<3>::New(
     {
