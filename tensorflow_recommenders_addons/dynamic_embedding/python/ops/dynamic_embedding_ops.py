@@ -1,4 +1,4 @@
-# Copyright 2020 The TensorFlow Recommenders-Addpnons Authors.
+# Copyright 2020 The TensorFlow Recommenders-Addons Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ from tensorflow.python.framework import ops
 from tensorflow.python.framework import sparse_tensor
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import gen_resource_variable_ops
 from tensorflow.python.ops import resource_variable_ops
 from tensorflow.python.ops import math_ops
@@ -335,7 +336,11 @@ class TrainableWrapper(resource_variable_ops.ResourceVariable):
       )
 
   def update_op(self):
-    return self.params.upsert(self.ids, self.read_value(False))
+    update_param_op = self.params.upsert(self.ids, self.read_value(False))
+    if self.params.restrict_policy is not None:
+      update_status_op = self.params.restrict_policy.apply_update(self.ids)
+      return control_flow_ops.group([update_param_op, update_status_op])
+    return update_param_op
 
   def size(self):
     return self.params.size()
@@ -462,14 +467,15 @@ def embedding_lookup(
   full_name += (name + "/") if name else "embedding_lookup/"
   with ops.name_scope(full_name):
     ids = ops.convert_to_tensor(ids, name="ids")
-    if ids.get_shape() == tensor_shape.unknown_shape():
-      ids = array_ops.reshape(ids, shape=[-1])
-      initial_shape = (1, params.dim)
-      trainable_shape = tensor_shape.unknown_shape()
+    if ids.get_shape().is_fully_defined():
+      # use static shape
+      initial_shape = [ids.get_shape().num_elements(), params.dim]
+      embeddings_shape = ids.get_shape().concatenate([params.dim])
     else:
-      initial_shape = [d if d else 1 for d in ids.get_shape().as_list()
-                      ] + [params.dim]
-      trainable_shape = ids.get_shape().concatenate([params.dim])
+      # use dynamic shape
+      initial_shape = (1, params.dim)
+      embeddings_shape = array_ops.concat([array_ops.shape(ids), [params.dim]],
+                                          axis=0)
     initial_value = array_ops.zeros(shape=initial_shape,
                                     dtype=params.value_dtype)
     if (isinstance(initial_value, ops.Tensor)
@@ -492,13 +498,7 @@ def embedding_lookup(
                                        collections=collections,
                                        model_mode=ModelMode.CURRENT_SETTING)
       embeddings = array_ops.identity(trainable_)
-      embeddings.set_shape(trainable_shape)
-
-    for existed in params.trainable_wrappers:
-      if trainable_.name == existed.name:
-        break
-      else:
-        params.trainable_wrappers.append(trainable_)
+      embeddings = array_ops.reshape(embeddings, shape=embeddings_shape)
 
   return (embeddings, trainable_) if return_trainable else embeddings
 

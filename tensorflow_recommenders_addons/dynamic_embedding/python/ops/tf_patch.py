@@ -1,4 +1,4 @@
-# Copyright 2020 The TensorFlow Recommenders-Addpnons Authors.
+# Copyright 2020 The TensorFlow Recommenders-Addons Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ from __future__ import division
 from __future__ import print_function
 
 from tensorflow_recommenders_addons import dynamic_embedding as de
+from tensorflow_recommenders_addons import embedding_variable as ev
 
 from tensorflow.core.framework import node_def_pb2
 from tensorflow.python.eager import context
@@ -27,8 +28,10 @@ from tensorflow.python.framework import ops
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import resource_variable_ops as rvo
 from tensorflow.python.ops import variables
+from tensorflow.python.ops import variable_scope
 from tensorflow.python.training import device_setter
 from tensorflow.python.training import optimizer
+from tensorflow.python.training import slot_creator
 
 
 class _DenseDynamicEmbeddingTrainableProcessor(optimizer._OptimizableVariable):
@@ -48,6 +51,10 @@ class _DenseDynamicEmbeddingTrainableProcessor(optimizer._OptimizableVariable):
       _slots = [
           optimizer.get_slot(self._v, _s) for _s in optimizer.get_slot_names()
       ]
+      # Add the optimizer slots to restricting list.
+      if self._v.params.restrict_policy is not None:
+        self._v.params.restrict_policy._track_optimizer_slots(_slots)
+
       with ops.control_dependencies([g]):
         _before = [self._v.read_value()] + [_s.read_value() for _s in _slots]
       if isinstance(g, ops.IndexedSlices):
@@ -86,6 +93,8 @@ def _get_processor(v):
   if (rvo.is_resource_variable(v) and not v._in_graph_mode):  # pylint: disable=protected-access
     # True if and only if `v` was initialized eagerly.
     return optimizer._DenseResourceVariableProcessor(v)
+  if isinstance(v, ev.EmbeddingVariable):
+    return optimizer._DenseResourceVariableProcessor(v)
   if v.op.type == "VarHandleOp":
     return optimizer._DenseResourceVariableProcessor(v)
   if isinstance(v, variables.Variable):
@@ -93,6 +102,78 @@ def _get_processor(v):
   if isinstance(v, ops.Tensor):
     return optimizer._TensorProcessor(v)
   raise NotImplementedError("Trying to optimize unsupported type ", v)
+
+
+def _create_slot_var(primary,
+                     val,
+                     scope,
+                     validate_shape,
+                     shape,
+                     dtype,
+                     *,
+                     copy_xla_sharding=False):
+  """Helper function for creating a slot variable."""
+
+  # TODO(lukaszkaiser): Consider allowing partitioners to be set in the current
+  # scope.
+  current_partitioner = variable_scope.get_variable_scope().partitioner
+  variable_scope.get_variable_scope().set_partitioner(None)
+  # When init from val instead of callable initializer, the shape is expected to
+  # be None, not <unknown> or any fully defined shape.
+  shape = shape if callable(val) else None
+  if rvo.is_resource_variable(primary):
+    use_resource = True
+  elif isinstance(primary, variables.RefVariable):
+    use_resource = False
+  else:
+    use_resource = None
+  if isinstance(primary, ev.EmbeddingVariable):
+    slot = ev.EmbeddingVariable(embedding_dim=shape,
+                                initializer=val,
+                                trainable=False,
+                                ktype=primary._ktype,
+                                vtype=primary.dtype,
+                                invalid_key=primary.invalid_key)
+  else:
+    slot = variable_scope.get_variable(scope,
+                                       initializer=val,
+                                       trainable=False,
+                                       use_resource=use_resource,
+                                       shape=shape,
+                                       dtype=dtype,
+                                       validate_shape=validate_shape)
+  variable_scope.get_variable_scope().set_partitioner(current_partitioner)
+
+  # pylint: disable=protected-access
+  if isinstance(primary, variables.Variable) and primary._save_slice_info:
+    # Primary is a partitioned variable, so we need to also indicate that
+    # the slot is a partitioned variable.  Slots have the same partitioning
+    # as their primaries.
+    # For examples when using AdamOptimizer in linear model, slot.name
+    # here can be "linear//weights/Adam:0", while primary.op.name is
+    # "linear//weight". We want to get 'Adam' as real_slot_name, so we
+    # remove "'linear//weight' + '/'" and ':0'.
+    real_slot_name = slot.name[len(primary.op.name + "/"):-2]
+    slice_info = primary._save_slice_info
+    # support slot's shape not same as primary's shape
+    # example: primary's shape = [10, 20, 30], slot's shape =
+    # None, [], [10], [10, 20] or [10, 20, 30] is allowed
+    # slot's shape = None or [10, 20, 30], set slot's slice_info same as primary
+    # slot's shape = [], don't set slot's slice_info
+    # slot's shape = [10] or [10, 20], set slot's slice_info according to ndims
+    n = slot.shape.ndims
+    if n is None or n > 0:
+      slot._set_save_slice_info(
+          variables.Variable.SaveSliceInfo(
+              slice_info.full_name + "/" + real_slot_name,
+              slice_info.full_shape[:n], slice_info.var_offset[:n],
+              slice_info.var_shape[:n]))
+  # pylint: enable=protected-access
+
+  # Copy XLA sharding attributes from primary.
+  if copy_xla_sharding:
+    slot = xla_sharding.copy_sharding(primary, slot, use_sharding_op=False)
+  return slot
 
 
 def device_function(self, op):
@@ -139,4 +220,5 @@ def device_function(self, op):
 
 def patch_on_tf():
   optimizer._get_processor = _get_processor
+  slot_creator._create_slot_var = _create_slot_var
   device_setter._ReplicaDeviceChooser.device_function = device_function
