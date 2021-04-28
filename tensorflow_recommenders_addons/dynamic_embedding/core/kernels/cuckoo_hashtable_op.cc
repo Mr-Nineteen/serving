@@ -21,16 +21,12 @@ limitations under the License.
 #include <type_traits>
 #include <utility>
 
-#include "tensorflow/core/framework/register_types.h"
-#include "tensorflow/core/framework/types.h"
-#include "tensorflow/core/framework/variant.h"
 #include "tensorflow/core/kernels/lookup_table_op.h"
-#include "tensorflow/core/lib/gtl/inlined_vector.h"
 #include "tensorflow/core/util/work_sharder.h"
-#include "tensorflow_recommenders_addons/dynamic_embedding/core/lib/cuckoo/cuckoohash_map.hh"
+#include "tensorflow_recommenders_addons/dynamic_embedding/core/kernels/lookup_impl/lookup_table_op_cpu.h"
 
 namespace tensorflow {
-namespace cuckoohash {
+namespace recommenders_addons {
 namespace lookup {
 typedef Eigen::ThreadPoolDevice CPUDevice;
 
@@ -119,12 +115,10 @@ struct LaunchTensorsInsert<CPUDevice, K, V, J> {
           << "Error parsing TFRA_NUM_WORKER_THREADS_FOR_LOOKUP_TABLE_INSERT: "
           << status;
     }
-    if (num_worker_threads < 0 ||
+    if (num_worker_threads <= 0 ||
         num_worker_threads > worker_threads.num_threads) {
       num_worker_threads = worker_threads.num_threads;
     }
-    LOG(INFO) << "LaunchTensorsInsert num_worker_threads = "
-              << num_worker_threads;
     int64 slices = static_cast<int64>(total / worker_threads.num_threads) + 1;
     Shard(num_worker_threads, worker_threads.workers, total, slices, shard);
   }
@@ -481,5 +475,5 @@ REGISTER_KERNEL(tstring, Eigen::half);
 
 #undef REGISTER_KERNEL
 
-}  // namespace cuckoohash
+}  // namespace recommenders_addons
 }  // namespace tensorflow
