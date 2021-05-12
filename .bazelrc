@@ -42,6 +42,7 @@ build --action_env TF_HEADER_DIR="/usr/local/lib/python3.6/dist-packages/tensorf
 build --action_env TF_SHARED_LIBRARY_DIR="/usr/local/lib/python3.6/dist-packages/tensorflow"
 build --action_env TF_SHARED_LIBRARY_NAME="libtensorflow_framework.so.2"
 build --action_env TF_CXX11_ABI_FLAG="0"
+build --action_env TF_VERSION="2041"
 
 build -c opt
 
