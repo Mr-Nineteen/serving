@@ -22,7 +22,8 @@ def custom_op_library(
             "-nvcc_options=ftz=true",
         ])
         # cuda_deps = deps + if_cuda_is_configured(cuda_deps) + if_cuda_is_configured([
-        cuda_deps = deps + if_cuda_is_configured([
+        cuda_deps = deps + if_cuda_is_configured(["//tensorflow_recommenders_addons/dynamic_embedding/core/lib/nvhash:nvhashtable"]) + if_cuda_is_configured([
+        # cuda_deps = deps + if_cuda_is_configured([
             "@local_config_cuda//cuda:cuda_headers",
             "@local_config_cuda//cuda:cudart_static",
         ])
