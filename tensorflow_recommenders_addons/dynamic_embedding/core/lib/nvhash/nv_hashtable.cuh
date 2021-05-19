@@ -10,6 +10,10 @@
 
 #ifndef NV_HASHTABLE_H_
 #define NV_HASHTABLE_H_
+
+#include "tensorflow/core/platform/status.h"
+#include "tensorflow/core/util/env_var.h"
+
 #include "thrust/pair.h"
 #include "cudf/concurrent_unordered_map.cuh"
 #include "nv_util.h"
@@ -313,11 +317,21 @@ public:
     HashTable(size_t capacity, counter_type count = 0) {
         //assert(capacity <= std::numeric_limits<ValType>::max() && "error: Table is too large for the value type");
         cudaDeviceProp deviceProp;
+        Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY",
+                                                 false, &enable_unified_memory);
+        if (!status.ok()) {
+        LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
+                    << status.error_message();
+        }
         table_ = new Table(capacity, std::numeric_limits<ValType>::max());
         update_counter_ = 0;
         get_counter_ = 0;
         // Allocate device-side counter and copy user input to it
-        CUDA_CHECK(cudaMallocManaged((void **)&d_counter_, sizeof(*d_counter_)));
+        if (enable_unified_memory) {
+            CUDA_CHECK(cudaMallocManaged((void **)&d_counter_, sizeof(*d_counter_)));
+        } else {
+            CUDA_CHECK(cudaMalloc((void **)&d_counter_, sizeof(*d_counter_)));
+        }
         CUDA_CHECK(cudaMemcpy(d_counter_, &count, sizeof(*d_counter_), cudaMemcpyHostToDevice));
         CUDA_CHECK(cudaGetDeviceProperties(&deviceProp ,0));
         shared_mem_size = deviceProp.sharedMemPerBlock;
@@ -389,7 +403,11 @@ public:
 
         /* grid_size and allocating/initializing variable on dev, lauching kernel*/
         const int grid_size = (hash_capacity - 1) / BLOCK_SIZE_ + 1;
-        CUDA_CHECK(cudaMallocManaged((void **)&d_table_size, sizeof(size_t)));
+        if (enable_unified_memory) {
+            CUDA_CHECK(cudaMallocManaged((void **)&d_table_size, sizeof(size_t)));
+        } else {
+            CUDA_CHECK(cudaMalloc((void **)&d_table_size, sizeof(size_t)));
+        }
         CUDA_CHECK(cudaMemset ( d_table_size, 0, sizeof(size_t)));
         size_kernel<<<grid_size, BLOCK_SIZE_, 0, stream>>>(table_, hash_capacity, d_table_size, empty_key);
         CUDA_CHECK(cudaStreamSynchronize(stream));
@@ -512,6 +530,7 @@ private:
     static const int BLOCK_SIZE_ = 256;
     using Table = concurrent_unordered_map<KeyType, ValType, empty_key>;
 
+    bool enable_unified_memory;
     Table* table_;
 
     // GPU-level lock and counters for get and update APIs

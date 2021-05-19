@@ -9,6 +9,10 @@
 
 #ifndef NV_MULTIGPU_H_
 #define NV_MULTIGPU_H_
+
+#include "tensorflow/core/platform/status.h"
+#include "tensorflow/core/util/env_var.h"
+
 #include <vector>
 #include "nv_allocator.h"
 #include "nv_hashtable.cuh"
@@ -508,9 +512,22 @@ void MultiGpuHashTable<KeyType, ValType, KeyGPUMapPolicy_, empty_key>::insert_fr
     }
     KeyType* d_temp_key[buffer_count];
     ValType* d_temp_val[buffer_count];
+
+    bool enable_unified_memory;
+    Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY",
+                                                 false, &enable_unified_memory);
+    if (!status.ok()) {
+      LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
+                << status.error_message();
+    }
     for(int i=0 ; i < buffer_count ; i++){
-        CUDA_CHECK(cudaMallocManaged( (void**) &(d_temp_key[i]), sizeof(*h_key) * buffer_len));
-        CUDA_CHECK(cudaMallocManaged( (void**) &(d_temp_val[i]), sizeof(*h_val) * buffer_len)); 
+        if (enable_unified_memory) {
+            CUDA_CHECK(cudaMallocManaged( (void**) &(d_temp_key[i]), sizeof(*h_key) * buffer_len));
+            CUDA_CHECK(cudaMallocManaged( (void**) &(d_temp_val[i]), sizeof(*h_val) * buffer_len)); 
+        } else {
+            CUDA_CHECK(cudaMalloc( (void**) &(d_temp_key[i]), sizeof(*h_key) * buffer_len));
+            CUDA_CHECK(cudaMalloc( (void**) &(d_temp_val[i]), sizeof(*h_val) * buffer_len)); 
+        }
     }
 
     /* Counters recording how much we have done*/
@@ -613,10 +630,23 @@ void MultiGpuHashTable<KeyType, ValType, KeyGPUMapPolicy_, empty_key>::dump_to_c
 
     KeyType* d_temp_key[buffer_count];
     ValType* d_temp_val[buffer_count];
+    bool enable_unified_memory;
+    Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY",
+                                                 false, &enable_unified_memory);
+    if (!status.ok()) {
+      LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
+                << status.error_message();
+    }
     for(int i=0 ; i < buffer_count ; i++){
-        CUDA_CHECK(cudaMallocManaged( (void**) &(d_temp_key[i]), sizeof(*h_key) * buffer_len));
-        CUDA_CHECK(cudaMallocManaged( (void**) &(d_temp_val[i]), sizeof(*h_val) * buffer_len)); 
-        CUDA_CHECK(cudaMallocManaged( (void**) &(d_dump_counter[i]), sizeof(size_t)));
+        if (enable_unified_memory) {
+            CUDA_CHECK(cudaMallocManaged( (void**) &(d_temp_key[i]), sizeof(*h_key) * buffer_len));
+            CUDA_CHECK(cudaMallocManaged( (void**) &(d_temp_val[i]), sizeof(*h_val) * buffer_len)); 
+            CUDA_CHECK(cudaMallocManaged( (void**) &(d_dump_counter[i]), sizeof(size_t)));
+        } else {
+            CUDA_CHECK(cudaMalloc( (void**) &(d_temp_key[i]), sizeof(*h_key) * buffer_len));
+            CUDA_CHECK(cudaMalloc( (void**) &(d_temp_val[i]), sizeof(*h_val) * buffer_len)); 
+            CUDA_CHECK(cudaMalloc( (void**) &(d_dump_counter[i]), sizeof(size_t)));
+        }
     }
 
     /* Counters recording how much we have done*/
@@ -725,7 +755,18 @@ void MultiGpuHashTable<KeyType, ValType, KeyGPUMapPolicy_, empty_key>::dump_to_g
 
     CUDA_CHECK(cudaStreamCreate(&stream));
 
-    CUDA_CHECK(cudaMallocManaged( (void**) &(d_dump_counter), sizeof(size_t)));
+    bool enable_unified_memory;
+    Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY",
+                                                 false, &enable_unified_memory);
+    if (!status.ok()) {
+      LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
+                << status.error_message();
+    }
+    if (enable_unified_memory) {
+        CUDA_CHECK(cudaMallocManaged( (void**) &(d_dump_counter), sizeof(size_t)));
+    } else {
+        CUDA_CHECK(cudaMalloc( (void**) &(d_dump_counter), sizeof(size_t)));
+    }
 
     // The Actual capacity of hashtable on gpu_id, NOT the size.
     const size_t table_capacity = tables_[table_index] -> get_capacity(); 
