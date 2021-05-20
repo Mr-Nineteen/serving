@@ -313,7 +313,7 @@ public:
     HashTable(size_t capacity, counter_type count = 0, bool enable_unified_memory = false) {
         //assert(capacity <= std::numeric_limits<ValType>::max() && "error: Table is too large for the value type");
         cudaDeviceProp deviceProp;
-        enable_unified_memory_ = enable_unified_memory;
+        enable_unified_memory_ = true;
         table_ = new Table(capacity, std::numeric_limits<ValType>::max());
         update_counter_ = 0;
         get_counter_ = 0;
