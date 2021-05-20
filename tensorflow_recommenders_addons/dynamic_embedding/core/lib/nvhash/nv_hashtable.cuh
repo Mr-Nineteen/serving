@@ -320,10 +320,9 @@ public:
         // Allocate device-side counter and copy user input to it
         if (enable_unified_memory_) {
             CUDA_CHECK(cudaMallocManaged((void **)&d_counter_, sizeof(*d_counter_)));
-        } esle {
+        } else {
             CUDA_CHECK(cudaMalloc((void **)&d_counter_, sizeof(*d_counter_)));
         }
-        
         CUDA_CHECK(cudaMemcpy(d_counter_, &count, sizeof(*d_counter_), cudaMemcpyHostToDevice));
         CUDA_CHECK(cudaGetDeviceProperties(&deviceProp ,0));
         shared_mem_size = deviceProp.sharedMemPerBlock;
