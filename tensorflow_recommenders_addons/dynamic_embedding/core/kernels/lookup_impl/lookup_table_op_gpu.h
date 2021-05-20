@@ -29,6 +29,7 @@ limitations under the License.
 #include "tensorflow/core/lib/core/status.h"
 #include "tensorflow/core/platform/macros.h"
 #include "tensorflow/core/platform/thread_annotations.h"
+#include "tensorflow/core/util/env_var.h"
 #include "tensorflow_recommenders_addons/dynamic_embedding/core/lib/nvhash/nv_hashtable.cuh"
 
 namespace tensorflow {
@@ -74,7 +75,14 @@ class TableWrapper final : public TableWrapperBase<K, V> {
 
  public:
   TableWrapper(size_t max_size) : max_size_(max_size) {
-    table_ = new Table(max_size);
+    bool enable_unified_memory;
+    Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY", false,
+                                       &enable_unified_memory);
+    if (!status.ok()) {
+      LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
+                 << status.error_message();
+    }
+    table_ = new Table(max_size, enable_unified_memory);
   }
 
   ~TableWrapper() override { delete table_; }

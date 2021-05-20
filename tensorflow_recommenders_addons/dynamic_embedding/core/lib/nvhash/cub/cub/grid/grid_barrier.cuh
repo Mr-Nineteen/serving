@@ -33,9 +33,6 @@
 
 #pragma once
 
-#include "tensorflow/core/platform/status.h"
-#include "tensorflow/core/util/env_var.h"
-
 #include "../util_debug.cuh"
 #include "../util_namespace.cuh"
 #include "../thread/thread_load.cuh"
@@ -142,7 +139,6 @@ class GridBarrierLifetime : public GridBarrier
 {
 protected:
 
-    bool enable_unified_memory;
     // Number of bytes backed by d_sync
     size_t sync_bytes;
 
@@ -166,13 +162,6 @@ public:
             d_sync = NULL;
         }
         sync_bytes = 0;
-
-        Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY",
-                                                 false, &enable_unified_memory);
-        if (!status.ok()) {
-        LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
-                    << status.error_message();
-        }
         return retval;
     }
 
@@ -205,8 +194,7 @@ public:
                 sync_bytes = new_sync_bytes;
 
                 // Allocate and initialize to zero
-                cudaError_t t = enable_unified_memory ? cudaMallocManaged((void**) &d_sync, sync_bytes) : cudaMalloc((void**) &d_sync, sync_bytes);
-                if (CubDebug(retval = t)) break;
+                if (CubDebug(retval = cudaMalloc((void**) &d_sync, sync_bytes))) break;
                 if (CubDebug(retval = cudaMemset(d_sync, 0, new_sync_bytes))) break;
             }
         } while (0);

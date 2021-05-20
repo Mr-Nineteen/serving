@@ -10,10 +10,6 @@
 
 #ifndef NV_HASHTABLE_H_
 #define NV_HASHTABLE_H_
-
-#include "tensorflow/core/platform/status.h"
-#include "tensorflow/core/util/env_var.h"
-
 #include "thrust/pair.h"
 #include "cudf/concurrent_unordered_map.cuh"
 #include "nv_util.h"
@@ -314,24 +310,20 @@ __global__ void delete_kernel(Table* table,
 template<typename KeyType, typename ValType, typename BaseValType, KeyType empty_key, typename counter_type = unsigned long long int>
 class HashTable {
 public:
-    HashTable(size_t capacity, counter_type count = 0) {
+    HashTable(size_t capacity, counter_type count = 0, bool enable_unified_memory = false) {
         //assert(capacity <= std::numeric_limits<ValType>::max() && "error: Table is too large for the value type");
         cudaDeviceProp deviceProp;
-        Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY",
-                                                 false, &enable_unified_memory);
-        if (!status.ok()) {
-        LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
-                    << status.error_message();
-        }
+        enable_unified_memory_ = enable_unified_memory;
         table_ = new Table(capacity, std::numeric_limits<ValType>::max());
         update_counter_ = 0;
         get_counter_ = 0;
         // Allocate device-side counter and copy user input to it
-        if (enable_unified_memory) {
+        if (enable_unified_memory_) {
             CUDA_CHECK(cudaMallocManaged((void **)&d_counter_, sizeof(*d_counter_)));
-        } else {
+        } esle {
             CUDA_CHECK(cudaMalloc((void **)&d_counter_, sizeof(*d_counter_)));
         }
+        
         CUDA_CHECK(cudaMemcpy(d_counter_, &count, sizeof(*d_counter_), cudaMemcpyHostToDevice));
         CUDA_CHECK(cudaGetDeviceProperties(&deviceProp ,0));
         shared_mem_size = deviceProp.sharedMemPerBlock;
@@ -403,7 +395,7 @@ public:
 
         /* grid_size and allocating/initializing variable on dev, lauching kernel*/
         const int grid_size = (hash_capacity - 1) / BLOCK_SIZE_ + 1;
-        if (enable_unified_memory) {
+        if (enable_unified_memory_) {
             CUDA_CHECK(cudaMallocManaged((void **)&d_table_size, sizeof(size_t)));
         } else {
             CUDA_CHECK(cudaMalloc((void **)&d_table_size, sizeof(size_t)));
@@ -530,7 +522,7 @@ private:
     static const int BLOCK_SIZE_ = 256;
     using Table = concurrent_unordered_map<KeyType, ValType, empty_key>;
 
-    bool enable_unified_memory;
+    bool enable_unified_memory_;
     Table* table_;
 
     // GPU-level lock and counters for get and update APIs

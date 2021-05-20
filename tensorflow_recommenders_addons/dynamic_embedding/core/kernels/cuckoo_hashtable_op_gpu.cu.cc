@@ -63,13 +63,6 @@ class CuckooHashTableOfTensorsGpu final : public LookupInterface {
       max_size_ = init_size;
     }
 
-    Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY", false,
-                                       &enable_unified_memory);
-    if (!status.ok()) {
-      LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
-                 << status.error_message();
-    }
-
     OP_REQUIRES_OK(ctx,
                    GetNodeAttr(kernel->def(), "value_shape", &value_shape_));
     OP_REQUIRES(
@@ -135,11 +128,7 @@ class CuckooHashTableOfTensorsGpu final : public LookupInterface {
       size_t default_value_num =
           is_full_default ? default_value.shape().dim_size(0) : 1;
       CUDA_CHECK(cudaStreamCreate(&_stream));
-      if (enable_unified_memory) {
-        CUDA_CHECK(cudaMallocManaged((void**)&d_status, sizeof(bool) * len));
-      } else {
-        CUDA_CHECK(cudaMalloc((void**)&d_status, sizeof(bool) * len));
-      }
+      CUDA_CHECK(cudaMalloc((void**)&d_status, sizeof(bool) * len));
       {
         tf_shared_lock l(mu_);
         table_->get((const K*)d_keys.tensor_data().data(),
@@ -173,17 +162,10 @@ class CuckooHashTableOfTensorsGpu final : public LookupInterface {
     if (new_max_size != max_size_) {  // rehash manually.
       size_t capacity = table_->get_capacity();
       size_t h_dump_counter = 0;
-      if (enable_unified_memory) {
-        CUDA_CHECK(cudaMallocManaged((void**)&d_dump_counter, sizeof(size_t)));
-        CUDA_CHECK(cudaMallocManaged((void**)&d_keys, sizeof(K) * capacity));
-        CUDA_CHECK(cudaMallocManaged((void**)&d_values,
-                                     sizeof(V) * runtime_dim_ * capacity));
-      } else {
-        CUDA_CHECK(cudaMalloc((void**)&d_dump_counter, sizeof(size_t)));
-        CUDA_CHECK(cudaMalloc((void**)&d_keys, sizeof(K) * capacity));
-        CUDA_CHECK(
-            cudaMalloc((void**)&d_values, sizeof(V) * runtime_dim_ * capacity));
-      }
+      CUDA_CHECK(cudaMalloc((void**)&d_dump_counter, sizeof(size_t)));
+      CUDA_CHECK(cudaMalloc((void**)&d_keys, sizeof(K) * capacity));
+      CUDA_CHECK(
+          cudaMalloc((void**)&d_values, sizeof(V) * runtime_dim_ * capacity));
       table_->dump(d_keys, (gpu::ValueArrayBase<V>*)d_values, 0, capacity,
                    d_dump_counter, stream);
       CUDA_CHECK(cudaStreamSynchronize(stream));
@@ -233,11 +215,7 @@ class CuckooHashTableOfTensorsGpu final : public LookupInterface {
 
     CUDA_CHECK(cudaStreamCreate(&_stream));
     if (len > 0) {
-      if (enable_unified_memory) {
-        CUDA_CHECK(cudaMallocManaged((void**)&d_keys, sizeof(K) * len));
-      } else {
-        CUDA_CHECK(cudaMalloc((void**)&d_keys, sizeof(K) * len));
-      }
+      CUDA_CHECK(cudaMalloc((void**)&d_keys, sizeof(K) * len));
       CUDA_CHECK(cudaMemcpy((void*)d_keys, (void*)keys.tensor_data().data(),
                             sizeof(K) * len, cudaMemcpyDefault));
       {
@@ -260,15 +238,8 @@ class CuckooHashTableOfTensorsGpu final : public LookupInterface {
     if (len > 0) {
       cudaStream_t _stream;
       CUDA_CHECK(cudaStreamCreate(&_stream));
-      if (enable_unified_memory) {
-        CUDA_CHECK(cudaMallocManaged((void**)&d_keys, sizeof(K) * len));
-        CUDA_CHECK(cudaMallocManaged((void**)&d_values,
-                                     sizeof(V) * runtime_dim_ * len));
-      } else {
-        CUDA_CHECK(cudaMalloc((void**)&d_keys, sizeof(K) * len));
-        CUDA_CHECK(
-            cudaMalloc((void**)&d_values, sizeof(V) * runtime_dim_ * len));
-      }
+      CUDA_CHECK(cudaMalloc((void**)&d_keys, sizeof(K) * len));
+      CUDA_CHECK(cudaMalloc((void**)&d_values, sizeof(V) * runtime_dim_ * len));
       CUDA_CHECK(cudaMemcpy((void*)d_keys, (void*)keys.tensor_data().data(),
                             sizeof(K) * len, cudaMemcpyDefault));
       CUDA_CHECK(cudaMemcpy((void*)d_values, (void*)values.tensor_data().data(),
@@ -306,11 +277,7 @@ class CuckooHashTableOfTensorsGpu final : public LookupInterface {
       CUDA_CHECK(cudaStreamSynchronize(_stream));
     }
 
-    if (enable_unified_memory) {
-      CUDA_CHECK(cudaMallocManaged((void**)&d_dump_counter, sizeof(size_t)));
-    } else {
-      CUDA_CHECK(cudaMalloc((void**)&d_dump_counter, sizeof(size_t)));
-    }
+    CUDA_CHECK(cudaMalloc((void**)&d_dump_counter, sizeof(size_t)));
 
     AllocatorAttributes attr;
     attr.set_gpu_compatible(true);
@@ -339,7 +306,6 @@ class CuckooHashTableOfTensorsGpu final : public LookupInterface {
   TensorShape value_shape() const override { return value_shape_; }
 
  private:
-  bool enable_unified_memory;
   TensorShape value_shape_;
   size_t max_size_;
   size_t min_size_;

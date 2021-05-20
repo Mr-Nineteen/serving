@@ -17,9 +17,6 @@
 #ifndef CONCURRENT_UNORDERED_MAP_CUH
 #define CONCURRENT_UNORDERED_MAP_CUH
 
-#include "tensorflow/core/platform/status.h"
-#include "tensorflow/core/util/env_var.h"
-
 #include <iterator>
 #include <type_traits>
 #include <cassert>
@@ -376,18 +373,7 @@ public:
     { // allocate the raw data of hash table: m_hashtbl_values,pre-alloc it on current GPU if UM.
         m_hashtbl_values = m_allocator.allocate( m_hashtbl_capacity );
         // Allocate marker and lock buffer
-        bool enable_unified_memory;
-        Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY",
-                                                 false, &enable_unified_memory);
-        if (!status.ok()) {
-        LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
-                    << status.error_message();
-        }
-        if (enable_unified_memory) {
-            CUDA_RT_CALL( cudaMallocManaged((void**)&valid_marker, m_hashtbl_capacity * sizeof(*valid_marker)) );
-        } else {
-            CUDA_RT_CALL( cudaMalloc((void**)&valid_marker, m_hashtbl_capacity * sizeof(*valid_marker)) );
-        }
+        CUDA_RT_CALL( cudaMalloc((void**)&valid_marker, m_hashtbl_capacity * sizeof(*valid_marker)) );
         //CUDA_RT_CALL( cudaMalloc((void**)&bucket_lock, m_hashtbl_capacity * sizeof(*bucket_lock)) );
         constexpr int block_size = 128;
         {

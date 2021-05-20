@@ -33,9 +33,6 @@
 
 #pragma once
 
-#include "tensorflow/core/platform/status.h"
-#include "tensorflow/core/util/env_var.h"
-
 #include "util_namespace.cuh"
 #include "util_debug.cuh"
 
@@ -445,16 +442,8 @@ struct CachingDeviceAllocator
                 if (CubDebug(error = cudaSetDevice(device))) return error;
             }
 
-            bool enable_unified_memory;
-            Status status = ReadBoolFromEnvVar("TFRA_FORCE_UNIFIED_MEMORY",
-                                                 false, &enable_unified_memory);
-            if (!status.ok()) {
-            LOG(ERROR) << "Unable to read TFRA_FORCE_UNIFIED_MEMORY: "
-                        << status.error_message();
-            }
             // Attempt to allocate
-            cudaError_t t = enable_unified_memory ? cudaMallocManaged(&search_key.d_ptr, search_key.bytes) : cudaMalloc(&search_key.d_ptr, search_key.bytes);
-            if (CubDebug(error = t) == cudaErrorMemoryAllocation)
+            if (CubDebug(error = cudaMalloc(&search_key.d_ptr, search_key.bytes)) == cudaErrorMemoryAllocation)
             {
                 // The allocation attempt failed: free all cached blocks on device and retry
                 if (debug) _CubLog("\tDevice %d failed to allocate %lld bytes for stream %lld, retrying after freeing cached allocations",
@@ -498,8 +487,7 @@ struct CachingDeviceAllocator
                 if (error) return error;
 
                 // Try to allocate again
-                cudaError_t error_t = enable_unified_memory ? cudaMallocManaged(&search_key.d_ptr, search_key.bytes) : cudaMalloc(&search_key.d_ptr, search_key.bytes);
-                if (CubDebug(error = error_t)) return error;
+                if (CubDebug(error = cudaMalloc(&search_key.d_ptr, search_key.bytes))) return error;
             }
 
             // Create ready event
