@@ -1,11 +1,11 @@
 licenses(["notice"])  # Apache 2.0
 
-load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda", "if_cuda_is_configured")
+load("@tfra_local_config_cuda//cuda:build_defs.bzl", "if_cuda", "if_cuda_is_configured")
 
 package(default_visibility = ["//visibility:public"])
 
 load("//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
-load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda")
+load("@tfra_local_config_cuda//cuda:build_defs.bzl", "if_cuda")
 load("@local_config_tf//:build_defs.bzl", "FOR_TF_SERVING")
 
 custom_op_library(

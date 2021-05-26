@@ -97,7 +97,7 @@ tf_configure(
     name = "local_config_tf",
 )
 
-# cuda_configure(name = "local_config_cuda")
+cuda_configure(name = "tfra_local_config_cuda")
 
 # END recommenders_addons
 

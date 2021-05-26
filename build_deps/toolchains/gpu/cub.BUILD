@@ -1,6 +1,6 @@
 # Description: CUB library which is a set of primitives for GPU programming.
 
-load("@local_config_cuda//cuda:build_defs.bzl", "cuda_default_copts", "if_cuda")
+load("@tfra_local_config_cuda//cuda:build_defs.bzl", "cuda_default_copts", "if_cuda")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -20,6 +20,6 @@ cc_library(
     hdrs = if_cuda([":cub_header_files"]),
     include_prefix = "gpu",
     deps = [
-        "@local_config_cuda//cuda:cuda_headers",
+        "@tfra_local_config_cuda//cuda:cuda_headers",
     ],
 )
