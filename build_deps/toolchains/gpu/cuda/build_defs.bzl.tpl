@@ -1,17 +1,14 @@
 # Macros for building CUDA code.
-def if_cuda(if_true, if_false = [], for_tf_serving = "0"):
+def if_cuda(if_true, if_false = []):
     """Shorthand for select()'ing on whether we're building with CUDA.
 
     Returns a select statement which evaluates to if_true if we're building
     with CUDA enabled.  Otherwise, the select statement evaluates to if_false.
 
     """
-    if for_tf_serving=="1":
-        return if_true
-
     return select({
-        "@tfra_local_config_cuda//cuda:using_nvcc": if_true,
-        "@tfra_local_config_cuda//cuda:using_clang": if_true,
+        "@local_config_cuda//cuda:using_nvcc": if_true,
+        "@local_config_cuda//cuda:using_clang": if_true,
         "//conditions:default": if_false
     })
 

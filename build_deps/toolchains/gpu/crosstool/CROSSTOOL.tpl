@@ -637,7 +637,7 @@ toolchain {
       action: "preprocess-assemble"
       flag_group {
         flag: "-B"
-        flag: "external/tfra_local_config_cuda/crosstool/windows/msvc_wrapper_for_nvcc.py"
+        flag: "external/local_config_cuda/crosstool/windows/msvc_wrapper_for_nvcc.py"
       }
     }
   }

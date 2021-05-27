@@ -1,11 +1,11 @@
 licenses(["notice"])  # Apache 2.0
 
-load("@tfra_local_config_cuda//cuda:build_defs.bzl", "if_cuda", "if_cuda_is_configured")
+load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda", "if_cuda_is_configured")
 
 package(default_visibility = ["//visibility:public"])
 
-load("//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library")
-load("@tfra_local_config_cuda//cuda:build_defs.bzl", "if_cuda")
+load("//tensorflow_recommenders_addons:tensorflow_recommenders_addons.bzl", "custom_op_library", "if_cuda_for_tf_serving")
+load("@local_config_cuda//cuda:build_defs.bzl", "if_cuda")
 load("@local_config_tf//:build_defs.bzl", "FOR_TF_SERVING")
 
 custom_op_library(
@@ -15,7 +15,7 @@ custom_op_library(
         "kernels/cuckoo_hashtable_op.cc",
         "ops/cuckoo_hashtable_ops.cc",
     ] + glob(["kernels/lookup_impl/lookup_table_op_cpu*"]),
-    cuda_deps = if_cuda(
+    cuda_deps = if_cuda_for_tf_serving(
         ["//tensorflow_recommenders_addons/dynamic_embedding/core/lib/nvhash:nvhashtable"],
         [],
         FOR_TF_SERVING,

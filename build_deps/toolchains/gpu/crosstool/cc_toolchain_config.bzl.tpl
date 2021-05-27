@@ -899,7 +899,7 @@ def _impl(ctx):
                     flag_group(
                         flags = [
                             "-B",
-                            "external/tfra_local_config_cuda/crosstool/windows/msvc_wrapper_for_nvcc.py",
+                            "external/local_config_cuda/crosstool/windows/msvc_wrapper_for_nvcc.py",
                         ],
                     ),
                 ],

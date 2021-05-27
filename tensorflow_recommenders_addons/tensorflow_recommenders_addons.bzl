@@ -5,7 +5,7 @@ load(
     "FOR_TF_SERVING",
 )
 load(
-    "@tfra_local_config_cuda//cuda:build_defs.bzl",
+    "@local_config_cuda//cuda:build_defs.bzl",
     "if_cuda",
     "if_cuda_is_configured",
 )
@@ -36,8 +36,8 @@ def custom_op_library(
             "-nvcc_options=ftz=true",
         ])
         cuda_deps = deps + if_cuda_is_configured(cuda_deps) + if_cuda_is_configured([
-            "@tfra_local_config_cuda//cuda:cuda_headers",
-            "@tfra_local_config_cuda//cuda:cudart_static",
+            "@local_config_cuda//cuda:cuda_headers",
+            "@local_config_cuda//cuda:cudart_static",
         ])
         basename = name.split(".")[0]
         native.cc_library(
@@ -99,3 +99,19 @@ def custom_op_library(
             deps = deps,
             **kwargs
         )
+
+def if_cuda_for_tf_serving(if_true, if_false = [], for_tf_serving = "0"):
+    """Shorthand for select()'ing on whether we're building with CUDA.
+
+    Returns a select statement which evaluates to if_true if we're building
+    with CUDA enabled.  Otherwise, the select statement evaluates to if_false.
+
+    """
+    if for_tf_serving == "1":
+        return if_true
+
+    return select({
+        "@local_config_cuda//cuda:using_nvcc": if_true,
+        "@local_config_cuda//cuda:using_clang": if_true,
+        "//conditions:default": if_false,
+    })

@@ -1116,7 +1116,7 @@ cuda_configure = repository_rule(
 """Detects and configures the local CUDA toolchain.
 Add the following to your WORKSPACE FILE:
 ```python
-cuda_configure(name = "tfra_local_config_cuda")
+cuda_configure(name = "local_config_cuda")
 ```
 Args:
   name: A unique name for this workspace rule.
