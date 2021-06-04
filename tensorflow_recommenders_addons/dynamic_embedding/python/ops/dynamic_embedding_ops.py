@@ -23,6 +23,7 @@ from __future__ import division
 from __future__ import print_function
 
 from tensorflow_recommenders_addons import dynamic_embedding as de
+from tensorflow_recommenders_addons.utils.resource_loader import get_tf_version_triple
 
 from tensorflow.core.framework import attr_value_pb2
 from tensorflow.python.eager import context
@@ -211,7 +212,11 @@ class TrainableWrapper(resource_variable_ops.ResourceVariable):
           # When in eager mode use a uid for the shared_name, to prevent
           # accidental sharing.
           unique_id = "%s_%d" % (handle_name, ops.uid())
-          shared_name = None  # Never shared
+          tf_major_version, _, _ = get_tf_version_triple()
+          if int(tf_major_version) >= 2:
+            shared_name = None  # Never shared
+          else:
+            shared_name = context.shared_name()
         # Use attr_scope and device(None) to simulate the behavior of
         # colocate_with when the variable we want to colocate with doesn't
         # yet exist.
@@ -805,7 +810,7 @@ def safe_embedding_lookup_sparse(
         sparse_ids.dense_shape.get_shape()[0])
     original_rank = (array_ops.size(original_shape)
                      if original_rank_dim is None else original_rank_dim)
-    sparse_ids = sparse_ops.sparse_reshape(
+    sparse_ids = de.math.sparse_reshape(
         sparse_ids,
         [
             math_ops.reduce_prod(
@@ -824,10 +829,10 @@ def safe_embedding_lookup_sparse(
           sparse_ids, sparse_weights)
 
     # Fill in dummy values for empty features, if necessary.
-    sparse_ids, is_row_empty = sparse_ops.sparse_fill_empty_rows(
+    sparse_ids, is_row_empty = de.math.sparse_fill_empty_rows(
         sparse_ids, default_id or 0)
     if sparse_weights is not None:
-      sparse_weights, _ = sparse_ops.sparse_fill_empty_rows(sparse_weights, 1.0)
+      sparse_weights, _ = de.math.sparse_fill_empty_rows(sparse_weights, 1.0)
 
     result, trainable_ = embedding_lookup_sparse(
         embedding_weights,
